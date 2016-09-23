@@ -170,7 +170,12 @@ void OMX::binderDied(const wp<IBinder> &the_late_who) {
         Mutex::Autolock autoLock(mLock);
 
         ssize_t index = mLiveNodes.indexOfKey(the_late_who);
-        CHECK(index >= 0);
+
+        if (index < 0) {
+            ALOGE("b/27597103, nonexistent observer on binderDied");
+            android_errorWriteLog(0x534e4554, "27597103");
+            return;
+        }
 
         instance = mLiveNodes.editValueAt(index);
         mLiveNodes.removeItemsAt(index);
@@ -183,6 +188,11 @@ void OMX::binderDied(const wp<IBinder> &the_late_who) {
     }
 
     instance->onObserverDied(mMaster);
+}
+
+bool OMX::isSecure(node_id node) {
+    OMXNodeInstance *instance = findInstance(node);
+    return (instance == NULL ? false : instance->isSecure());
 }
 
 bool OMX::livesLocally(node_id node, pid_t pid) {
@@ -223,7 +233,7 @@ status_t OMX::allocateNode(
 
     *node = 0;
 
-    OMXNodeInstance *instance = new OMXNodeInstance(this, observer);
+    OMXNodeInstance *instance = new OMXNodeInstance(this, observer, name);
 
     OMX_COMPONENTTYPE *handle;
     OMX_ERRORTYPE err = mMaster->makeComponentInstance(
