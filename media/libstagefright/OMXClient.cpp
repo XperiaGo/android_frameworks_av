@@ -87,7 +87,7 @@ struct MuxOMX : public IOMX {
 
     virtual status_t useBuffer(
             node_id node, OMX_U32 port_index, const sp<IMemory> &params,
-            buffer_id *buffer);
+            buffer_id *buffer, OMX_BOOL crossProcess);
 
 #ifdef MTK_HARDWARE
     virtual status_t useBuffer(
@@ -129,7 +129,7 @@ struct MuxOMX : public IOMX {
 
     virtual status_t allocateBufferWithBackup(
             node_id node, OMX_U32 port_index, const sp<IMemory> &params,
-            buffer_id *buffer);
+            buffer_id *buffer, OMX_BOOL crossProcess);
 
     virtual status_t freeBuffer(
             node_id node, OMX_U32 port_index, buffer_id buffer);
@@ -333,8 +333,9 @@ status_t MuxOMX::getGraphicBufferUsage(
 
 status_t MuxOMX::useBuffer(
         node_id node, OMX_U32 port_index, const sp<IMemory> &params,
-        buffer_id *buffer) {
-    return getOMX(node)->useBuffer(node, port_index, params, buffer);
+        buffer_id *buffer, OMX_BOOL /* crossProcess */) {
+    return getOMX(node)->useBuffer(
+            node, port_index, params, buffer, OMX_FALSE /* crossProcess */);
 }
 
 #ifdef MTK_HARDWARE
@@ -401,9 +402,9 @@ status_t MuxOMX::allocateBuffer(
 
 status_t MuxOMX::allocateBufferWithBackup(
         node_id node, OMX_U32 port_index, const sp<IMemory> &params,
-        buffer_id *buffer) {
+        buffer_id *buffer, OMX_BOOL /* crossProcess */) {
     return getOMX(node)->allocateBufferWithBackup(
-            node, port_index, params, buffer);
+            node, port_index, params, buffer, OMX_FALSE /* crossProcess */);
 }
 
 status_t MuxOMX::freeBuffer(
